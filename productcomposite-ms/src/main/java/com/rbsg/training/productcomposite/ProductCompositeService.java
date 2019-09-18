@@ -20,7 +20,7 @@ public class ProductCompositeService {
         this.productCompositeDelegate = productCompositeDelegate;
     }
 
-    @RequestMapping("/{productId}")
+    @RequestMapping("/productcomposite/{productId}")
     public ResponseEntity<ProductAggregated> getProduct(@PathVariable int productId) {
         Product product = productCompositeDelegate.getProduct(productId);
         List<Recommendation> recommendations = productCompositeDelegate.getRecommendations(productId);

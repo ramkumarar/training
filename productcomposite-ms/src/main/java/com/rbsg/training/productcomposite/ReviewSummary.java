@@ -10,3 +10,4 @@ public class ReviewSummary {
     private String author;
     private String subject;
 }
+

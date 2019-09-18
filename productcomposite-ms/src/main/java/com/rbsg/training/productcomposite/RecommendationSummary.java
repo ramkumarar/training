@@ -10,3 +10,4 @@ public class RecommendationSummary {
     private String author;
     private int rate;
 }
+
