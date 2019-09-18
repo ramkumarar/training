@@ -9,6 +9,7 @@ import com.rbsg.training.productcomposite.model.Recommendation;
 import com.rbsg.training.productcomposite.model.Review;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
@@ -21,8 +22,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Arrays;
 import java.util.List;
 
+
 @Component
 public class ProductCompositeDelegate {
+
+
     private final RestTemplate restTemplate;
     private EurekaClient eurekaClient;
     private LoadBalancerClient loadBalancer;
@@ -37,9 +41,10 @@ public class ProductCompositeDelegate {
     @HystrixCommand(fallbackMethod = "defaultProduct")
     public Product getProduct(int productId) {
         //ServiceInstance serviceInstance=loadBalancer.choose("product-ms");
-        InstanceInfo instanceInfo = eurekaClient.getNextServerFromEureka("product-ms", false);
-        String baseUrl=instanceInfo.getHomePageUrl() + "/product/" + productId;
+        //InstanceInfo instanceInfo = eurekaClient.getNextServerFromEureka("product-ms", false);
+        //String baseUrl=instanceInfo.getHomePageUrl() + "/product/" + productId;
 
+        String baseUrl="http://product-ms/product/" + productId;
         ResponseEntity<Product> result = restTemplate.getForEntity(baseUrl, Product.class);
         return result.getBody();
     }
@@ -53,8 +58,7 @@ public class ProductCompositeDelegate {
             }
     )
     public List<Recommendation>  getRecommendations(int productId) {
-        ServiceInstance serviceInstance=loadBalancer.choose("recommendation-ms");
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(serviceInstance.getUri().toString() + "/recommendation").queryParam("productId",productId);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl("http://recommendation-ms/recommendation").queryParam("productId",productId);
         String baseUrl=builder.toUriString();
         ResponseEntity<List<Recommendation>> result = restTemplate.exchange(builder.toUriString(),HttpMethod.GET,null, new ParameterizedTypeReference<List<Recommendation>>(){});
         return result.getBody();
@@ -62,8 +66,7 @@ public class ProductCompositeDelegate {
 
     @HystrixCommand(fallbackMethod = "defaultReviews")
     public List<Review> getReviews(int productId) {
-        ServiceInstance serviceInstance=loadBalancer.choose("review-ms");
-        String baseUrl=serviceInstance.getUri().toString() + "/review";
+        String baseUrl="http://review-ms/review";
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl).queryParam("productId",productId);
         ResponseEntity<List<Review>> result = restTemplate.exchange(builder.toUriString(),HttpMethod.GET,null, new ParameterizedTypeReference<List<Review>>(){});
         return result.getBody();
